@@ -145,6 +145,12 @@ class TestSchedulesDBApi(test_utils.BaseTestCase):
         schedules = self.db_api.schedule_get_all(filter_args=filters)
         self.assertEqual(len(schedules), 2)
 
+    def test_schedule_get_all_instance_unknown_filter(self):
+        filters = {}
+        filters['instance_name'] = 'my_instance_1_name'
+        schedules = self.db_api.schedule_get_all(filter_args=filters)
+        self.assertEqual(len(schedules), 0)
+
     def test_schedule_get_next_run_before_filter(self):
         filters = {}
         filters['next_run_before'] = self.schedule_1['next_run']

@@ -225,14 +225,19 @@ class TestApi(utils.BaseTestCase):
         schedules = self.client.list_schedules(filter_args=filters)
         self.assertEqual(len(schedules), 0)
 
-        #list schedules, instance_id filters
-        filters = {}
-        filters['instance_id'] = 'my_instance_1'
-        schedules = self.client.list_schedules(filter_args=filters)
+        #list schedules, metadata filter
+        filter = {}
+        filter['instance_id'] = 'my_instance_1'
+        schedules = self.client.list_schedules(filter_args=filter)
         self.assertEqual(len(schedules), 1)
         self.assertEqual(schedules[0], schedule)
         filters['instance_id'] = 'aaaa-bbbb-cccc-dddd'
         schedules = self.client.list_schedules(filter_args=filters)
+        self.assertEqual(len(schedules), 0)
+
+        filter = {}
+        filter['instance_name'] = 'aaaa-bbbb-cccc-dddd'
+        schedules = self.client.list_schedules(filter_args=filter)
         self.assertEqual(len(schedules), 0)
 
         #update schedule

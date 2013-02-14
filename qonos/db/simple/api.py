@@ -88,6 +88,8 @@ def _do_pagination(items, marker, limit):
 
 
 def schedule_get_all(filter_args={}):
+    SCHEDULE_BASE_FILTERS = ['next_run_after', 'next_run_before',
+                             'tenant_id', 'limit', 'marker']
     schedules = copy.deepcopy(DATA['schedules'].values())
     schedules_mutate = copy.deepcopy(DATA['schedules'].values())
 
@@ -102,31 +104,40 @@ def schedule_get_all(filter_args={}):
             if not schedule['next_run'] <= filter_args['next_run_before']:
                 if schedule in schedules_mutate:
                     del schedules_mutate[schedules_mutate.index(schedule)]
+        filter_args.pop('next_run_before')
 
     if 'next_run_after' in filter_args:
         for schedule in schedules:
             if not schedule['next_run'] >= filter_args['next_run_after']:
                 if schedule in schedules_mutate:
                     del schedules_mutate[schedules_mutate.index(schedule)]
+        filter_args.pop('next_run_after')
 
     if filter_args.get('tenant') is not None:
         for schedule in schedules:
             if schedule['tenant'] != filter_args['tenant']:
                 if schedule in schedules_mutate:
                     del schedules_mutate[schedules_mutate.index(schedule)]
+        filter_args.pop('tenant_id')
 
-    if filter_args.get('instance_id') is not None:
-        instance_id = filter_args['instance_id']
-        for schedule in schedules:
-            if schedule['schedule_metadata']:
-                for schedule_metadata in schedule['schedule_metadata']:
-                    if not(schedule_metadata['key'] == 'instance_id' and
-                           schedule_metadata['value'] == instance_id):
+    for filter_key in filter_args.keys():
+        if filter_key not in SCHEDULE_BASE_FILTERS:
+            filter_value = filter_args[filter_key]
+            for schedule in schedules:
+                if schedule['schedule_metadata']:
+                    for schedule_metadata in schedule['schedule_metadata']:
+                        if not(schedule_metadata['key'] == filter_key and
+                               schedule_metadata['value'] == filter_value):
+                            try:
+                                schedule_mutated = (
+                                        schedules_mutate.index(schedule))
+                                del schedules_mutate[schedule_mutated]
+                            except Exception:
+                                pass
+                            break
+                else:
+                    if schedule in schedules_mutate:
                         del schedules_mutate[schedules_mutate.index(schedule)]
-                        break
-            else:
-                if schedule in schedules_mutate:
-                    del schedules_mutate[schedules_mutate.index(schedule)]
 
     marker = filter_args.get('marker')
     limit = filter_args.get('limit')

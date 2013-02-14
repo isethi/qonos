@@ -32,14 +32,15 @@ class SchedulesController(object):
 
     def _get_request_params(self, request):
         filter_args = {}
-        if request.params.get('next_run_after') is not None:
-            next_run_after = request.params['next_run_after']
+        params = request.params
+        if params.get('next_run_after') is not None:
+            next_run_after = params['next_run_after']
             next_run_after = timeutils.parse_isotime(next_run_after)
             next_run_after = timeutils.normalize_time(next_run_after)
             filter_args['next_run_after'] = next_run_after
 
-        if request.params.get('next_run_before') is not None:
-            next_run_before = request.params['next_run_before']
+        if params.get('next_run_before') is not None:
+            next_run_before = params['next_run_before']
             next_run_before = timeutils.parse_isotime(next_run_before)
             next_run_before = timeutils.normalize_time(next_run_before)
             filter_args['next_run_before'] = next_run_before
@@ -47,22 +48,25 @@ class SchedulesController(object):
         if request.params.get('tenant') is not None:
             filter_args['tenant'] = request.params['tenant']
 
-        if request.params.get('instance_id') is not None:
-            filter_args['instance_id'] = request.params['instance_id']
+        filter_args['limit'] = params.get('limit')
+        filter_args['marker'] = params.get('marker')
 
-        filter_args['limit'] = request.params.get('limit')
-        filter_args['marker'] = request.params.get('marker')
+        for filter_key in params.keys():
+            if filter_key not in filter_args:
+                filter_args[filter_key] = params[filter_key]
+
         return filter_args
 
     def list(self, request):
         filter_args = self._get_request_params(request)
         try:
             filter_args = utils.get_pagination_limit(filter_args)
+            limit = filter_args['limit']
         except exception.Invalid as e:
             raise webob.exc.HTTPBadRequest(explanation=str(e))
         try:
             schedules = self.db_api.schedule_get_all(filter_args=filter_args)
-            if len(schedules) != 0 and len(schedules) == filter_args['limit']:
+            if len(schedules) != 0 and len(schedules) == limit:
                 next_page = '/v1/schedules?marker=%s' % schedules[-1].get('id')
             else:
                 next_page = None
