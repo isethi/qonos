@@ -135,8 +135,8 @@ class TestApi(utils.BaseTestCase):
             {
                 'tenant': TENANT1,
                 'action': 'snapshot',
-                'minute': '30',
-                'hour': '12',
+                'minute': 30,
+                'hour': 12,
                 'metadata': {
                     meta1['key']: meta1['value'],
                     meta2['key']: meta2['value'],
@@ -323,8 +323,8 @@ class TestApi(utils.BaseTestCase):
             {
                 'tenant': TENANT1,
                 'action': 'snapshot',
-                'minute': '30',
-                'hour': '12'
+                'minute': 30,
+                'hour': 12
             }
         }
         schedule = self.client.create_schedule(request)
@@ -380,8 +380,8 @@ class TestApi(utils.BaseTestCase):
             {
                 'tenant': TENANT1,
                 'action': 'snapshot',
-                'minute': '30',
-                'hour': '12',
+                'minute': 30,
+                'hour': 12,
                 'metadata': {
                     meta1['key']: meta1['value'],
                     meta2['key']: meta2['value'],
@@ -527,8 +527,8 @@ class TestApi(utils.BaseTestCase):
             {
                 'tenant': TENANT1,
                 'action': 'snapshot',
-                'minute': '30',
-                'hour': '12'
+                'minute': 30,
+                'hour': 12
             }
         }
         schedule = self.client.create_schedule(request)
@@ -595,8 +595,8 @@ class TestApi(utils.BaseTestCase):
             {
                 'tenant': TENANT1,
                 'action': 'snapshot',
-                'minute': '30',
-                'hour': '12',
+                'minute': 30,
+                'hour': 12,
                 'schedule_metadata': [
                     meta1,
                     meta2,

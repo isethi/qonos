@@ -23,6 +23,7 @@ python-novaclient==2.10.0
 
 Paste
 
+jsonschema
 python-daemon
 
 http://tarballs.openstack.org/oslo-config/oslo.config-1.1.0b1.tar.gz#egg=oslo.config

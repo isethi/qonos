@@ -275,6 +275,45 @@ class TestSchedulesApi(test_utils.BaseTestCase):
         self.assertEqual(expected['minute'], actual['minute'])
         self.assertEqual(expected['hour'], actual['hour'])
 
+    def test_create_bad_hour_request(self):
+        fixture = {'schedule': {
+            'id': unit_utils.SCHEDULE_UUID5,
+            'tenant': unit_utils.TENANT1,
+            'action': 'snapshot',
+            'minute': 30,
+            'hour': 200,  # invalid value
+        }}
+        request = unit_utils.get_fake_request(method='POST')
+        schedule_id = str(uuid.uuid4())
+        self.assertRaises(webob.exc.HTTPBadRequest, self.controller.create,
+                          request, fixture)
+
+    def test_create_bad_minute_request(self):
+        fixture = {'schedule': {
+            'id': unit_utils.SCHEDULE_UUID5,
+            'tenant': unit_utils.TENANT1,
+            'action': 'snapshot',
+            'minute': 99,  # invalid value
+            'hour': 20,
+        }}
+        request = unit_utils.get_fake_request(method='POST')
+        schedule_id = str(uuid.uuid4())
+        self.assertRaises(webob.exc.HTTPBadRequest, self.controller.create,
+                          request, fixture)
+
+    def test_create_bad_action_request(self):
+        fixture = {'schedule': {
+            'id': unit_utils.SCHEDULE_UUID5,
+            'tenant': unit_utils.TENANT1,
+            'action': {'type': 'snapshot'},
+            'minute': 30,
+            'hour': 20,
+        }}
+        request = unit_utils.get_fake_request(method='POST')
+        schedule_id = str(uuid.uuid4())
+        self.assertRaises(webob.exc.HTTPBadRequest, self.controller.create,
+                          request, fixture)
+
     def test_create_no_body_bad_request(self):
         request = unit_utils.get_fake_request(method='POST')
         schedule_id = str(uuid.uuid4())

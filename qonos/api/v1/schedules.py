@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 import webob.exc
 
 from qonos.api.v1 import api_utils
@@ -23,12 +24,14 @@ from qonos.common import utils
 import qonos.db
 from qonos.openstack.common.gettextutils import _
 from qonos.openstack.common import wsgi
+from qonos import schemas
 
 
 class SchedulesController(object):
 
-    def __init__(self, db_api=None):
+    def __init__(self, db_api=None, schemas=None):
         self.db_api = db_api or qonos.db.get_api()
+        self.schema = schemas or get_schema()
 
     def _get_request_params(self, request):
         filter_args = {}
@@ -86,6 +89,11 @@ class SchedulesController(object):
         if not 'schedule' in body:
             msg = _('The request body must contain a "schedule" entity')
             raise webob.exc.HTTPBadRequest(explanation=msg)
+
+        try:
+            self.schema.validate(body['schedule'])
+        except exception.Invalid as e:
+            raise webob.exc.HTTPBadRequest(explanation=str(e))
 
         api_utils.deserialize_schedule_metadata(body['schedule'])
         values = {}
@@ -151,6 +159,68 @@ class SchedulesController(object):
         utils.serialize_datetimes(schedule)
         api_utils.serialize_schedule_metadata(schedule)
         return {'schedule': schedule}
+
+_BASE_PROPERTIES = {
+    'id': {
+        'type': 'string',
+        'description': _('An identifier for schedule'),
+        'pattern': ('^([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}'
+                            '-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}$'),
+    },
+    'tenant': {
+        'type': 'string',
+        'description': _('An identifier for tenant. Can be name or id'),
+        'maxLength': 255,
+    },
+    'action': {
+        'type': 'string',
+        'description': _('Type of action'),
+    },
+    'minute': {
+        'type': 'integer',
+        'description': _('Minute of schedule'),
+        'minimum': 0,
+        'maximum': 59,
+    },
+    'hour': {
+        'type': 'integer',
+        'description': _('Hour of schedule'),
+        'minimum': 0,
+        'maximum': 23,
+    },
+    'day_of_month': {
+        'type': 'integer',
+        'description': _('Day of month of schedule'),
+        'minimum': 1,
+        'maximum': 31,
+    },
+    'month': {
+        'type': 'integer',
+        'description': _('Month of schedule'),
+        'minimum': 1,
+        'maximum': 12,
+    },
+    'day_of_week': {
+        'type': 'integer',
+        'description': _('Day of week of schedule'),
+        'minimum': 0,
+        'maximum': 7,
+    },
+    'last_run': {
+        'type': 'string',
+        'description': _('The last run time of schedule'),
+    },
+    'next_run': {
+        'type': 'string',
+        'description': _('The next run time of schedule'),
+    }
+}
+
+
+def get_schema():
+    properties = copy.deepcopy(_BASE_PROPERTIES)
+    schema = schemas.Schema('schedule', properties)
+    return schema
 
 
 def create_resource():
